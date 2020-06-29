@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.bootcss.com/jquery/2.1.2/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
+    <script src="./Picker.js"></script>
+    <script src="./Transformers.js"></script>
+    <style>
+      * {
+        border: 0;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      #container {
+        position: relative;
+        width: 1220px;
+        height: 90vh;
+        background-color: mistyrose;
+        overflow: hidden;
+        /* margin: 50px 0 0 100px; */
+      }
+
+      #container > * {
+        position: absolute;
+      }
+
+      #border {
+        position: absolute;
+        z-index: 100;
+        border: 2px solid #6ccfff;
+        pointer-events: none;
+      }
+
+      #border2 {
+        position: absolute;
+        z-index: 101;
+        border: 2px solid red;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <img
+        src="https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200409-191820-a683.png"
+        alt=""
+        crossorigin
+        style="height: 600px; left: 200px; top: 100px; z-index: 1;"
+      />
+      <img
+        src="https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200409-191820-5865.png"
+        alt=""
+        crossorigin
+        style="left: 200px; top: 100px; z-index: 2;"
+      />
+      <img
+        src="https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200409-191820-22a9.png"
+        alt=""
+        crossorigin
+        style="left: 200px; top: 100px; z-index: 3;"
+      />
+      <div style="top: 300px; left: 300px; font-size: 40px; z-index: 4;">对抗赛冠军奥克兰</div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 237.19 225.58"
+        preserveAspectRatio="none"
+        width="745.2"
+        height="707.0085"
+      >
+        <g id="图层_2_0148666" data-name="图层 2">
+          <polygon
+            points="118.59 0 0 86.17 45.3 225.58 191.89 225.58 237.19 86.17 118.59 0"
+            fill="rgb(20%, 20%, 20%)"
+          ></polygon>
+        </g>
+      </svg>
+    </div>
+    <div id="border"></div>
+    <div id="border2"></div>
+  </body>
+  <script>
+    /* TODO
+      1.缩放后效果
+    */
+    const $picker = new Picker({ debug: true });
+    setTimeout(() => {
+      let border = document.querySelector("#border");
+      let border2 = document.querySelector("#border2");
+      let container = document.querySelector("#container");
+      let cw = container.offsetWidth;
+      let ch = container.offsetHeight;
+
+      let list = Array.from(container.children).map((o) => {
+        let rect = o.getBoundingClientRect();
+        let transform = {
+          a: 1,
+          b: 0,
+          c: 0,
+          d: 1,
+          tx: 0,
+          ty: 0,
+        };
+        if (o.tagName === "DIV") {
+          // 通过这个对象去转换transform值
+          let mat = new Transformers();
+          mat.rotate(60);
+          transform = mat.matrix;
+          o.style.transform = mat.render();
+        }
+
+        return {
+          $el: o,
+          x: rect.left,
+          y: rect.top,
+          width: rect.width,
+          height: rect.height,
+          type: o.tagName === "IMG" ? "image" : o.tagName === "svg" ? "svg" : "default",
+          zIndex: parseFloat(o.style.zIndex || 0),
+          transform,
+        };
+      });
+
+      $picker.update(list, cw, ch);
+
+      window.addEventListener("mousemove", (e) => {
+        let { x, y } = e;
+
+        let res = $picker.pick(x, y);
+        if (res) {
+          border.style.width = res.width + "px";
+          border.style.height = res.height + "px";
+          border.style.left = res.x + "px";
+          border.style.top = res.y + "px";
+          border.style.display = "block";
+        } else {
+          border.style.display = "none";
+        }
+      });
+
+      container.addEventListener("click", (e) => {
+        let { x, y } = e;
+
+        let res = $picker.pick(x, y);
+        if (res) {
+          border2.style.width = res.width + "px";
+          border2.style.height = res.height + "px";
+          border2.style.left = res.x + "px";
+          border2.style.top = res.y + "px";
+          border2.style.display = "block";
+        } else {
+          border2.style.display = "none";
+        }
+      });
+    }, 300);
+  </script>
+</html>
